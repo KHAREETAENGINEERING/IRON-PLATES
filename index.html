@@ -3,46 +3,43 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>كاميرا بزوم رقمي</title>
+  <title>كاميرا بزوم سلس</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       text-align: center;
-      margin-top: 20px;
+      margin: 20px;
     }
     video {
       width: 90%;
       max-width: 600px;
       transform-origin: center center;
-    }
-    .controls {
-      margin-top: 10px;
+      transition: transform 0.1s ease-out; /* يجعل الزوم سلس */
     }
     button {
-      margin-bottom: 10px;
-      padding: 5px 15px;
+      margin: 10px;
+      padding: 8px 20px;
       font-size: 16px;
+    }
+    #zoomValue {
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <h1>كاميرا بزوم رقمي</h1>
-  <video id="camera" autoplay playsinline></video>
-  <div class="controls">
-    <button id="switchCamera">تبديل الكاميرا</button><br>
-    <label for="zoom">تكبير: </label>
-    <input type="range" id="zoom" min="1" max="100" value="1">
-    <span id="zoomValue">1x</span>
-  </div>
+  <h1>كاميرا بزوم سلس</h1>
+  <video id="camera" autoplay playsinline></video><br>
+  <button id="switchCamera">تبديل الكاميرا</button><br>
+  <span>تكبير: <span id="zoomValue">1x</span></span>
 
   <script>
     const video = document.getElementById('camera');
-    const zoomInput = document.getElementById('zoom');
-    const zoomValue = document.getElementById('zoomValue');
     const switchButton = document.getElementById('switchCamera');
+    const zoomValue = document.getElementById('zoomValue');
 
     let currentStream = null;
     let useFrontCamera = false;
+    let zoom = 1;
 
     async function startCamera() {
       if (currentStream) {
@@ -66,13 +63,33 @@
       startCamera();
     });
 
-    zoomInput.addEventListener('input', () => {
-      const zoom = zoomInput.value;
-      video.style.transform = `scale(${zoom})`;
-      zoomValue.textContent = zoom + 'x';
+    // التحكم بالزوم عن طريق السحب (touchmove) أو عجلة الفأرة
+    let lastY = null;
+
+    video.addEventListener('touchstart', (e) => {
+      lastY = e.touches[0].clientY;
     });
 
-    // بدء الكاميرا عند تحميل الصفحة
+    video.addEventListener('touchmove', (e) => {
+      const delta = lastY - e.touches[0].clientY;
+      zoom += delta * 0.01; // التحكم بالسرعة
+      if (zoom < 1) zoom = 1;
+      if (zoom > 100) zoom = 100;
+      video.style.transform = `scale(${zoom})`;
+      zoomValue.textContent = zoom.toFixed(1) + 'x';
+      lastY = e.touches[0].clientY;
+    });
+
+    // دعم عجلة الفأرة للكمبيوتر
+    video.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      zoom += e.deltaY * -0.01;
+      if (zoom < 1) zoom = 1;
+      if (zoom > 100) zoom = 100;
+      video.style.transform = `scale(${zoom})`;
+      zoomValue.textContent = zoom.toFixed(1) + 'x';
+    });
+
     startCamera();
   </script>
 </body>
